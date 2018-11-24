@@ -1,5 +1,5 @@
 {
-    "name": "wordpress/wordpress",
+    "name": "wp/wordpress",
     "description": "The famous wordpress as composer library",
     "type": "library",
     "license": "GPLv2",
