@@ -1,0 +1,13 @@
+{
+    "name": "wordpress/wordpress",
+    "description": "The famous wordpress as composer library",
+    "type": "library",
+    "license": "GPLv2",
+    "authors": [
+        {
+            "name": "Andrius Petrauskis",
+            "email": "andrius@petrauskis.lt"
+        }
+    ],
+    "require": {}
+}
