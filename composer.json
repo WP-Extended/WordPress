@@ -1,0 +1,15 @@
+{
+    "name": "wp-extended/wordpress",
+    "description": "The famous wordpress as composer library",
+    "type": "library",
+    "license": "GPL-2.0-only",
+    "authors": [
+        {
+            "name": "Andrius Petrauskis",
+            "email": "andrius@petrauskis.lt"
+        }
+    ],
+    "require": {
+        "php": ">=5.6"
+    }
+}
