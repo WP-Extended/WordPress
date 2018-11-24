@@ -2,7 +2,7 @@
     "name": "wp-extended/wordpress",
     "description": "The famous wordpress as composer library",
     "type": "library",
-    "license": "GPLv2",
+    "license": "GPL-2.0-only",
     "authors": [
         {
             "name": "Andrius Petrauskis",
