@@ -63,7 +63,8 @@ function the_author( $deprecated = '', $deprecated_echo = true ) {
 
 	if ( true !== $deprecated_echo ) {
 		_deprecated_argument(
-			__FUNCTION__, '1.5.0',
+			__FUNCTION__,
+			'1.5.0',
 			/* translators: %s: get_the_author() */
 			sprintf(
 				__( 'Use %s instead if you do not want the value echoed.' ),
@@ -521,9 +522,13 @@ function wp_list_authors( $args = '' ) {
 }
 
 /**
- * Does this site have more than one author
+ * Determines whether this site has more than one author.
  *
  * Checks to see if more than one author has published posts.
+ *
+ * For more information on this and similar theme functions, check out
+ * the {@link https://developer.wordpress.org/themes/basics/conditional-tags/
+ * Conditional Tags} article in the Theme Developer Handbook.
  *
  * @since 3.2.0
  *

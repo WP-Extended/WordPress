@@ -636,7 +636,6 @@ function _is_valid_nav_menu_item( $item ) {
  *
  * @since 3.0.0
  *
- * @global string $_menu_item_sort_prop
  * @staticvar array $fetched
  *
  * @param int|string|WP_Term $menu Menu ID, slug, name, or object.
@@ -724,7 +723,8 @@ function wp_get_nav_menu_items( $menu, $args = array() ) {
 		if ( ! empty( $terms ) ) {
 			foreach ( array_keys( $terms ) as $taxonomy ) {
 				get_terms(
-					$taxonomy, array(
+					$taxonomy,
+					array(
 						'include'      => $terms[ $taxonomy ],
 						'hierarchical' => false,
 					)
@@ -742,7 +742,8 @@ function wp_get_nav_menu_items( $menu, $args = array() ) {
 
 	if ( ARRAY_A == $args['output'] ) {
 		$items = wp_list_sort(
-			$items, array(
+			$items,
+			array(
 				$args['output_key'] => 'ASC',
 			)
 		);

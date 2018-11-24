@@ -779,6 +779,8 @@ $_old_files = array(
 	'wp-includes/js/mediaelement/renderers/soundcloud.min.js',
 	'wp-includes/js/mediaelement/renderers/twitch.js',
 	'wp-includes/js/mediaelement/renderers/twitch.min.js',
+	// 5.0
+	'wp-includes/js/codemirror/jshint.js',
 );
 
 /**
@@ -858,7 +860,7 @@ $_new_bundled_files = array(
  *
  * @since 2.7.0
  *
- * @global WP_Filesystem_Base $wp_filesystem
+ * @global WP_Filesystem_Base $wp_filesystem          WordPress filesystem subclass.
  * @global array              $_old_files
  * @global array              $_new_bundled_files
  * @global wpdb               $wpdb
