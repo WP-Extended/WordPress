@@ -167,7 +167,7 @@ function _objectWithoutProperties(source, excluded) {
 
 /***/ }),
 
-/***/ 29:
+/***/ 28:
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -413,10 +413,10 @@ var utils_isEmptyElement = function isEmptyElement(element) {
 };
 
 // EXTERNAL MODULE: ./node_modules/@babel/runtime/helpers/esm/typeof.js
-var esm_typeof = __webpack_require__(29);
+var esm_typeof = __webpack_require__(28);
 
 // EXTERNAL MODULE: external {"this":["wp","escapeHtml"]}
-var external_this_wp_escapeHtml_ = __webpack_require__(60);
+var external_this_wp_escapeHtml_ = __webpack_require__(61);
 
 // CONCATENATED MODULE: ./node_modules/@wordpress/element/build-module/raw-html.js
 
@@ -970,7 +970,7 @@ function renderStyle(style) {
 
 /***/ }),
 
-/***/ 60:
+/***/ 61:
 /***/ (function(module, exports) {
 
 (function() { module.exports = this["wp"]["escapeHtml"]; }());

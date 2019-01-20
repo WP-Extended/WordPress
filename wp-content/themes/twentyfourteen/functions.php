@@ -283,7 +283,7 @@ function twentyfourteen_scripts() {
 	wp_enqueue_style( 'twentyfourteen-style', get_stylesheet_uri() );
 
 	// Theme block stylesheet.
-	wp_enqueue_style( 'twentyfourteen-block-style', get_template_directory_uri() . '/css/blocks.css', array( 'twentyfourteen-style' ), '20181018' );
+	wp_enqueue_style( 'twentyfourteen-block-style', get_template_directory_uri() . '/css/blocks.css', array( 'twentyfourteen-style' ), '20181230' );
 
 	// Load the Internet Explorer specific stylesheet.
 	wp_enqueue_style( 'twentyfourteen-ie', get_template_directory_uri() . '/css/ie.css', array( 'twentyfourteen-style' ), '20131205' );
@@ -349,13 +349,13 @@ function twentyfourteen_resource_hints( $urls, $relation_type ) {
 add_filter( 'wp_resource_hints', 'twentyfourteen_resource_hints', 10, 2 );
 
 /**
- * Enqueue editor styles for Gutenberg
+ * Enqueue styles for the block-based editor.
  *
  * @since Twenty Fourteen 2.3
  */
 function twentyfourteen_block_editor_styles() {
 	// Block styles.
-	wp_enqueue_style( 'twentyfourteen-block-editor-style', get_template_directory_uri() . '/css/editor-blocks.css' );
+	wp_enqueue_style( 'twentyfourteen-block-editor-style', get_template_directory_uri() . '/css/editor-blocks.css', array(), '20181230' );
 	// Add custom fonts.
 	wp_enqueue_style( 'twentyfourteen-fonts', twentyfourteen_font_url(), array(), null );
 }

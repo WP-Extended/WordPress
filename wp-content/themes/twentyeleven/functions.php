@@ -282,18 +282,18 @@ endif; // twentyeleven_setup
  */
 function twentyeleven_scripts_styles() {
 	// Theme block stylesheet.
-	wp_enqueue_style( 'twentyeleven-block-style', get_template_directory_uri() . '/blocks.css', array(), '20181018' );
+	wp_enqueue_style( 'twentyeleven-block-style', get_template_directory_uri() . '/blocks.css', array(), '20181230' );
 }
 add_action( 'wp_enqueue_scripts', 'twentyeleven_scripts_styles' );
 
 /**
- * Enqueue editor styles for Gutenberg
+ * Enqueue styles for the block-based editor.
  *
  * @since Twenty Eleven 2.9
  */
 function twentyeleven_block_editor_styles() {
 	// Block styles.
-	wp_enqueue_style( 'twentyeleven-block-editor-style', get_template_directory_uri() . '/editor-blocks.css' );
+	wp_enqueue_style( 'twentyeleven-block-editor-style', get_template_directory_uri() . '/editor-blocks.css', array(), '20181230' );
 }
 add_action( 'enqueue_block_editor_assets', 'twentyeleven_block_editor_styles' );
 
