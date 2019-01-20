@@ -108,11 +108,72 @@ $tech_features = array(
 		</h2>
 
 		<div class="changelog point-releases">
-			<h3><?php echo _n( 'Maintenance and Security Release', 'Maintenance and Security Releases', 3 ); ?></h3>
-				<p><?php printf( _n( '<strong>Version %1$s</strong> addressed a security issue.',
+			<h3><?php echo _n( 'Maintenance and Security Release', 'Maintenance and Security Releases', 18 ); ?></h3>
+			<p>
+				<?php
+				/* translators: %s: WordPress version number */
+				printf( __( '<strong>Version %s</strong> addressed some security issues.' ), '4.3.18' );
+				?>
+				<?php
+				/* translators: %s: Codex URL */
+				printf( __( 'For more information, see <a href="%s">the release notes</a>.' ), 'https://codex.wordpress.org/Version_4.3.18' );
+				?>
+			</p>
+			<p><?php printf( __( '<strong>Version %s</strong> addressed one security issue.' ), '4.3.17' ); ?>
+				<?php printf( __( 'For more information, see <a href="%s">the release notes</a>.' ), 'https://codex.wordpress.org/Version_4.3.17' ); ?>
+			</p>
+			<p><?php printf( __( '<strong>Version %s</strong> addressed some security issues.' ), '4.3.16' ); ?>
+				<?php printf( __( 'For more information, see <a href="%s">the release notes</a>.' ), 'https://codex.wordpress.org/Version_4.3.16' ); ?>
+			</p>
+			<p><?php printf( __( '<strong>Version %s</strong> addressed one security issue.' ), '4.3.15' ); ?>
+				<?php printf( __( 'For more information, see <a href="%s">the release notes</a>.' ), 'https://codex.wordpress.org/Version_4.3.15' ); ?>
+			</p>
+			<p><?php printf( __( '<strong>Version %s</strong> addressed some security issues.' ), '4.3.14' ); ?>
+				<?php printf( __( 'For more information, see <a href="%s">the release notes</a>.' ), 'https://codex.wordpress.org/Version_4.3.14' ); ?>
+			</p>
+			<p><?php printf( __( '<strong>Version %s</strong> addressed one security issue.' ), '4.3.13' ); ?>
+				<?php printf( __( 'For more information, see <a href="%s">the release notes</a>.' ), 'https://codex.wordpress.org/Version_4.3.13' ); ?>
+			</p>
+			<p><?php printf( _n( '<strong>Version %1$s</strong> addressed a security issue.',
+					'<strong>Version %1$s</strong> addressed some security issues.', 8 ), '4.3.12' ); ?>
+				<?php printf( __( 'For more information, see <a href="%s">the release notes</a>.' ), 'https://codex.wordpress.org/Version_4.3.12' ); ?>
+			</p>
+			<p><?php printf( _n( '<strong>Version %1$s</strong> addressed a security issue.',
+					'<strong>Version %1$s</strong> addressed some security issues.', 5 ), '4.3.11' ); ?>
+				<?php printf( __( 'For more information, see <a href="%s">the release notes</a>.' ), 'https://codex.wordpress.org/Version_4.3.11' ); ?>
+			</p>
+			<p><?php printf( _n( '<strong>Version %1$s</strong> addressed %2$s bug.',
+					'<strong>Version %1$s</strong> addressed %2$s bugs.', 1 ), '4.3.10', number_format_i18n( 1 ) ); ?>
+				<?php printf( __( 'For more information, see <a href="%s">the release notes</a>.' ), 'https://codex.wordpress.org/Version_4.3.10' ); ?>
+			</p>
+			<p><?php printf( _n( '<strong>Version %1$s</strong> addressed a security issue.',
+					'<strong>Version %1$s</strong> addressed some security issues.', 6 ), '4.3.9' ); ?>
+				<?php printf( __( 'For more information, see <a href="%s">the release notes</a>.' ), 'https://codex.wordpress.org/Version_4.3.9' ); ?>
+			</p>
+			<p><?php printf( _n( '<strong>Version %1$s</strong> addressed a security issue.',
+					'<strong>Version %1$s</strong> addressed some security issues.', 3 ), '4.3.8' ); ?>
+				<?php printf( __( 'For more information, see <a href="%s">the release notes</a>.' ), 'https://codex.wordpress.org/Version_4.3.8' ); ?>
+			</p>
+			<p><?php printf( _n( '<strong>Version %1$s</strong> addressed a security issue.',
+					'<strong>Version %1$s</strong> addressed some security issues.', 8 ), '4.3.7' ); ?>
+				<?php printf( __( 'For more information, see <a href="%s">the release notes</a>.' ), 'https://codex.wordpress.org/Version_4.3.7' ); ?>
+			</p>
+			<p><?php printf( _n( '<strong>Version %1$s</strong> addressed some security issues and fixed %2$s bug.',
+		         '<strong>Version %1$s</strong> addressed some security issues and fixed %2$s bugs.', 1 ), '4.3.6', number_format_i18n( 1 ) ); ?>
+				<?php printf( __( 'For more information, see <a href="%s">the release notes</a>.' ), 'https://codex.wordpress.org/Version_4.3.6' ); ?>
+			</p>
+			<p><?php printf( _n( '<strong>Version %1$s</strong> addressed a security issue.',
+		         '<strong>Version %1$s</strong> addressed some security issues.', 7 ), '4.3.5' ); ?>
+				<?php printf( __( 'For more information, see <a href="%s">the release notes</a>.' ), 'https://codex.wordpress.org/Version_4.3.5' ); ?>
+			</p>
+			<p><?php printf( _n( '<strong>Version %1$s</strong> addressed a security issue.',
+		         '<strong>Version %1$s</strong> addressed some security issues.', 7 ), '4.3.4' ); ?>
+				<?php printf( __( 'For more information, see <a href="%s">the release notes</a>.' ), 'https://codex.wordpress.org/Version_4.3.4' ); ?>
+			</p>
+			<p><?php printf( _n( '<strong>Version %1$s</strong> addressed a security issue.',
 		         '<strong>Version %1$s</strong> addressed some security issues.', 2 ), '4.3.3' ); ?>
-					<?php printf( __( 'For more information, see <a href="%s">the release notes</a>.' ), 'https://codex.wordpress.org/Version_4.3.3' ); ?>
-				</p>
+				<?php printf( __( 'For more information, see <a href="%s">the release notes</a>.' ), 'https://codex.wordpress.org/Version_4.3.3' ); ?>
+			</p>
 			<p><?php printf( _n( '<strong>Version %1$s</strong> addressed a security issue and fixed %2$s bug.',
 		         '<strong>Version %1$s</strong> addressed a security issue and fixed %2$s bugs.', 5 ), '4.3.2', number_format_i18n( 5 ) ); ?>
 				<?php printf( __( 'For more information, see <a href="%s">the release notes</a>.' ), 'https://codex.wordpress.org/Version_4.3.2' ); ?>
