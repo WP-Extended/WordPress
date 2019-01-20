@@ -323,54 +323,68 @@ function size_format( $bytes, $decimals = 0 ) {
 }
 
 /**
- * Convert a filelength to human readable format.
+ * Convert a duration to human readable format.
  *
- * @since 5.0
+ * @since 5.1.0
  *
- * @param string $filelength Duration will be in string format (HH:ii:ss) OR (ii:ss).
- * @return boolean|string A human readable filelength string, false on failure.
+ * @param string $duration Duration will be in string format (HH:ii:ss) OR (ii:ss),
+ *                         with a possible prepended negative sign (-).
+ * @return string|false A human readable duration string, false on failure.
  */
-function human_readable_duration( $filelength = '' ) {
-	// Return false if filelength is empty or not in format.
-	if ( ( empty( $filelength ) || ! is_string( $filelength ) ) ) {
+function human_readable_duration( $duration = '' ) {
+	if ( ( empty( $duration ) || ! is_string( $duration ) ) ) {
 		return false;
 	}
 
-	// Validate filelength format.
-	if ( ! ( (bool) preg_match( '/^(([0-3]?[0-9])|([2][0-3])):([0-5]?[0-9])(:([0-5]?[0-9]))?$/', $filelength ) ) ) {
+	$duration = trim( $duration );
+
+	// Remove prepended negative sign.
+	if ( '-' === substr( $duration, 0, 1 ) ) {
+		$duration = substr( $duration, 1 );
+	}
+
+	// Extract duration parts.
+	$duration_parts = array_reverse( explode( ':', $duration ) );
+	$duration_count = count( $duration_parts );
+
+	$hour   = null;
+	$minute = null;
+	$second = null;
+
+	if ( 3 === $duration_count ) {
+		// Validate HH:ii:ss duration format.
+		if ( ! ( (bool) preg_match( '/^([0-9]+):([0-5]?[0-9]):([0-5]?[0-9])$/', $duration ) ) ) {
+			return false;
+		}
+		// Three parts: hours, minutes & seconds.
+		list( $second, $minute, $hour ) = $duration_parts;
+	} elseif ( 2 === $duration_count ) {
+		// Validate ii:ss duration format.
+		if ( ! ( (bool) preg_match( '/^([0-5]?[0-9]):([0-5]?[0-9])$/', $duration ) ) ) {
+			return false;
+		}
+		// Two parts: minutes & seconds.
+		list( $second, $minute ) = $duration_parts;
+	} else {
 		return false;
 	}
 
 	$human_readable_duration = array();
 
-	// Extract duration.
-	$durations      = array_reverse( explode( ':', $filelength ) );
-	$duration_count = count( $durations );
-
-	if ( 3 === $duration_count ) {
-		// Three parts: hours, minutes & seconds.
-		list( $second, $minute, $hour ) = $durations;
-	} elseif ( 2 === $duration_count ) {
-		// Two parts: minutes & seconds.
-		list( $second, $minute ) = $durations;
-	} else {
-		return false;
-	}
-
 	// Add the hour part to the string.
-	if ( ! empty( $hour ) && is_numeric( $hour ) ) {
+	if ( is_numeric( $hour ) ) {
 		/* translators: Time duration in hour or hours. */
 		$human_readable_duration[] = sprintf( _n( '%s hour', '%s hours', $hour ), (int) $hour );
 	}
 
 	// Add the minute part to the string.
-	if ( ! empty( $minute ) && is_numeric( $minute ) ) {
+	if ( is_numeric( $minute ) ) {
 		/* translators: Time duration in minute or minutes. */
 		$human_readable_duration[] = sprintf( _n( '%s minute', '%s minutes', $minute ), (int) $minute );
 	}
 
 	// Add the second part to the string.
-	if ( ! empty( $second ) && is_numeric( $second ) ) {
+	if ( is_numeric( $second ) ) {
 		/* translators: Time duration in second or seconds. */
 		$human_readable_duration[] = sprintf( _n( '%s second', '%s seconds', $second ), (int) $second );
 	}
@@ -1101,7 +1115,7 @@ function wp( $query_vars = '' ) {
  * @since 2.3.0
  * @since 3.9.0 Added status codes 418, 428, 429, 431, and 511.
  * @since 4.5.0 Added status codes 308, 421, and 451.
- * @since 5.0.0 Added status code 103.
+ * @since 5.1.0 Added status code 103.
  *
  * @global array $wp_header_to_desc
  *
@@ -2545,17 +2559,78 @@ function wp_check_filetype_and_ext( $file, $filename, $mimes = null ) {
 		$real_mime = finfo_file( $finfo, $file );
 		finfo_close( $finfo );
 
-		/*
-		 * If $real_mime doesn't match what we're expecting, we need to do some extra
-		 * vetting of application mime types to make sure this type of file is allowed.
-		 * Other mime types are assumed to be safe, but should be considered unverified.
-		 */
-		if ( $real_mime && ( $real_mime !== $type ) && ( 0 === strpos( $real_mime, 'application' ) ) ) {
-			$allowed = get_allowed_mime_types();
+		// fileinfo often misidentifies obscure files as one of these types
+		$nonspecific_types = array(
+			'application/octet-stream',
+			'application/encrypted',
+			'application/CDFV2-encrypted',
+			'application/zip',
+		);
 
-			if ( ! in_array( $real_mime, $allowed ) ) {
+		/*
+		 * If $real_mime doesn't match the content type we're expecting from the file's extension,
+		 * we need to do some additional vetting. Media types and those listed in $nonspecific_types are
+		 * allowed some leeway, but anything else must exactly match the real content type.
+		 */
+		if ( in_array( $real_mime, $nonspecific_types, true ) ) {
+			// File is a non-specific binary type. That's ok if it's a type that generally tends to be binary.
+			if ( ! in_array( substr( $type, 0, strcspn( $type, '/' ) ), array( 'application', 'video', 'audio' ) ) ) {
 				$type = $ext = false;
 			}
+		} elseif ( 0 === strpos( $real_mime, 'video/' ) || 0 === strpos( $real_mime, 'audio/' ) ) {
+			/*
+			 * For these types, only the major type must match the real value.
+			 * This means that common mismatches are forgiven: application/vnd.apple.numbers is often misidentified as application/zip,
+			 * and some media files are commonly named with the wrong extension (.mov instead of .mp4)
+			 */
+			if ( substr( $real_mime, 0, strcspn( $real_mime, '/' ) ) !== substr( $type, 0, strcspn( $type, '/' ) ) ) {
+				$type = $ext = false;
+			}
+		} elseif ( 'text/plain' === $real_mime ) {
+			// A few common file types are occasionally detected as text/plain; allow those.
+			if ( ! in_array(
+				$type,
+				array(
+					'text/plain',
+					'text/csv',
+					'text/richtext',
+					'text/tsv',
+					'text/vtt',
+				)
+			)
+			) {
+				$type = $ext = false;
+			}
+		} elseif ( 'text/rtf' === $real_mime ) {
+			// Special casing for RTF files.
+			if ( ! in_array(
+				$type,
+				array(
+					'text/rtf',
+					'text/plain',
+					'application/rtf',
+				)
+			)
+			) {
+				$type = $ext = false;
+			}
+		} else {
+			if ( $type !== $real_mime ) {
+				/*
+				 * Everything else including image/* and application/*:
+				 * If the real content type doesn't match the file extension, assume it's dangerous.
+				 */
+				$type = $ext = false;
+			}
+		}
+	}
+
+	// The mime type must be allowed
+	if ( $type ) {
+		$allowed = get_allowed_mime_types();
+
+		if ( ! in_array( $type, $allowed ) ) {
+			$type = $ext = false;
 		}
 	}
 
@@ -2858,6 +2933,7 @@ function wp_nonce_ays( $action ) {
  * @since 2.0.4
  * @since 4.1.0 The `$title` and `$args` parameters were changed to optionally accept
  *              an integer to be used as the response code.
+ * @since 5.1.0 The `$link_url` and `$link_text` arguments were added.
  *
  * @param string|WP_Error  $message Optional. Error message. If this is a WP_Error object,
  *                                  and not an Ajax or XML-RPC request, the error's messages are used.
@@ -2871,6 +2947,10 @@ function wp_nonce_ays( $action ) {
  *     as the response code. Default empty array.
  *
  *     @type int    $response       The HTTP response code. Default 200 for Ajax requests, 500 otherwise.
+ *     @type string $link_url       A URL to include a link to. Only works in combination with $link_text.
+ *                                  Default empty string.
+ *     @type string $link_text      A label for the link to include. Only works in combination with $link_url.
+ *                                  Default empty string.
  *     @type bool   $back_link      Whether to include a link to go back. Default false.
  *     @type string $text_direction The text direction. This is only useful internally, when WordPress
  *                                  is still loading and the site's locale is not set up yet. Accepts 'rtl'.
@@ -2895,6 +2975,15 @@ function wp_die( $message = '', $title = '', $args = array() ) {
 		 * @param callable $function Callback function name.
 		 */
 		$function = apply_filters( 'wp_die_ajax_handler', '_ajax_wp_die_handler' );
+	} elseif ( wp_is_json_request() ) {
+		/**
+		 * Filters the callback for killing WordPress execution for JSON requests.
+		 *
+		 * @since 5.1.0
+		 *
+		 * @param callable $function Callback function name.
+		 */
+		$function = apply_filters( 'wp_die_json_handler', '_json_wp_die_handler' );
 	} elseif ( defined( 'XMLRPC_REQUEST' ) && XMLRPC_REQUEST ) {
 		/**
 		 * Filters the callback for killing WordPress execution for XML-RPC requests.
@@ -2958,6 +3047,15 @@ function _default_wp_die_handler( $message, $title = '', $args = array() ) {
 		}
 	} elseif ( is_string( $message ) ) {
 		$message = "<p>$message</p>";
+	}
+
+	if ( ! empty( $r['link_url'] ) && ! empty( $r['link_text'] ) ) {
+		$link_url = $r['link_url'];
+		if ( function_exists( 'esc_url' ) ) {
+			$link_url = esc_url( $link_url );
+		}
+		$link_text = $r['link_text'];
+		$message  .= "\n<p><a href='{$link_url}'>{$link_text}</a></p>";
 	}
 
 	if ( isset( $r['back_link'] ) && $r['back_link'] ) {
@@ -3123,6 +3221,40 @@ function _default_wp_die_handler( $message, $title = '', $args = array() ) {
 </body>
 </html>
 	<?php
+	die();
+}
+
+/**
+ * Kill WordPress execution and display JSON message with error message.
+ *
+ * This is the handler for wp_die when processing JSON requests.
+ *
+ * @since 5.1.0
+ * @access private
+ *
+ * @param string       $message Error message.
+ * @param string       $title   Optional. Error title. Default empty.
+ * @param string|array $args    Optional. Arguments to control behavior. Default empty array.
+ */
+function _json_wp_die_handler( $message, $title = '', $args = array() ) {
+	$defaults = array( 'response' => 500 );
+
+	$r = wp_parse_args( $args, $defaults );
+
+	$data = array(
+		'code'    => 'wp_die',
+		'message' => $message,
+		'status'  => $r['response'],
+	);
+
+	if ( ! headers_sent() ) {
+		header( 'Content-Type: application/json; charset=utf-8' );
+		if ( null !== $r['response'] ) {
+			status_header( $r['response'] );
+		}
+	}
+
+	echo wp_json_encode( $data );
 	die();
 }
 
@@ -3748,6 +3880,22 @@ function wp_parse_args( $args, $defaults = '' ) {
 }
 
 /**
+ * Cleans up an array, comma- or space-separated list of scalar values.
+ *
+ * @since 5.1.0
+ *
+ * @param array|string $list List of values.
+ * @return array Sanitized array of values.
+ */
+function wp_parse_list( $list ) {
+	if ( ! is_array( $list ) ) {
+		return preg_split( '/[\s,]+/', $list, -1, PREG_SPLIT_NO_EMPTY );
+	}
+
+	return $list;
+}
+
+/**
  * Clean up an array, comma- or space-separated list of IDs.
  *
  * @since 3.0.0
@@ -3756,9 +3904,7 @@ function wp_parse_args( $args, $defaults = '' ) {
  * @return array Sanitized array of IDs.
  */
 function wp_parse_id_list( $list ) {
-	if ( ! is_array( $list ) ) {
-		$list = preg_split( '/[\s,]+/', $list );
-	}
+	$list = wp_parse_list( $list );
 
 	return array_unique( array_map( 'absint', $list ) );
 }
@@ -3772,15 +3918,9 @@ function wp_parse_id_list( $list ) {
  * @return array Sanitized array of slugs.
  */
 function wp_parse_slug_list( $list ) {
-	if ( ! is_array( $list ) ) {
-		$list = preg_split( '/[\s,]+/', $list );
-	}
+	$list = wp_parse_list( $list );
 
-	foreach ( $list as $key => $value ) {
-		$list[ $key ] = sanitize_title( $value );
-	}
-
-	return array_unique( $list );
+	return array_unique( array_map( 'sanitize_title', $list ) );
 }
 
 /**
@@ -3906,7 +4046,7 @@ function wp_list_pluck( $list, $field, $index_key = null ) {
  *
  * @since 4.7.0
  *
- * @param array        $list          An array of objects to filter.
+ * @param array        $list          An array of objects to sort.
  * @param string|array $orderby       Optional. Either the field name to order by or an array
  *                                    of multiple orderby fields as $orderby => $order.
  * @param string       $order         Optional. Either 'ASC' or 'DESC'. Only used if $orderby
@@ -4414,7 +4554,7 @@ function _doing_it_wrong( $function, $message, $version ) {
 	 * Filters whether to trigger an error for _doing_it_wrong() calls.
 	 *
 	 * @since 3.1.0
-	 * @since 5.0.0 Added the $function, $message and $version parameters.
+	 * @since 5.1.0 Added the $function, $message and $version parameters.
 	 *
 	 * @param bool   $trigger  Whether to trigger the error for _doing_it_wrong() calls. Default true.
 	 * @param string $function The function that was called.
@@ -4851,7 +4991,7 @@ function global_terms_enabled() {
  * a setting for the main network, making it essentially a global setting. Subsequent requests
  * will refer to this setting instead of running the query.
  *
- * @since 5.0.0
+ * @since 5.1.0
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
@@ -4990,6 +5130,7 @@ function wp_timezone_choice( $selected_zone, $locale = null ) {
 		$exists[4] = ( $exists[1] && $exists[3] );
 		$exists[5] = ( $exists[2] && $exists[3] );
 
+		// phpcs:disable WordPress.WP.I18n.LowLevelTranslationFunction,WordPress.WP.I18n.NonSingularStringLiteralText
 		$zonen[] = array(
 			'continent'   => ( $exists[0] ? $zone[0] : '' ),
 			'city'        => ( $exists[1] ? $zone[1] : '' ),
@@ -4998,6 +5139,7 @@ function wp_timezone_choice( $selected_zone, $locale = null ) {
 			't_city'      => ( $exists[4] ? translate( str_replace( '_', ' ', $zone[1] ), 'continents-cities' ) : '' ),
 			't_subcity'   => ( $exists[5] ? translate( str_replace( '_', ' ', $zone[2] ), 'continents-cities' ) : '' ),
 		);
+		// phpcs:enable
 	}
 	usort( $zonen, '_wp_timezone_choice_usort_callback' );
 
@@ -5631,16 +5773,16 @@ function _device_can_upload() {
  * @return bool True if the path is a stream URL.
  */
 function wp_is_stream( $path ) {
-	if ( false === strpos( $path, '://' ) ) {
+	$scheme_separator = strpos( $path, '://' );
+
+	if ( false === $scheme_separator ) {
 		// $path isn't a stream
 		return false;
 	}
 
-	$wrappers    = stream_get_wrappers();
-	$wrappers    = array_map( 'preg_quote', $wrappers );
-	$wrappers_re = '(' . join( '|', $wrappers ) . ')';
+	$stream = substr( $path, 0, $scheme_separator );
 
-	return preg_match( "!^$wrappers_re://!", $path ) === 1;
+	return in_array( $stream, stream_get_wrappers(), true );
 }
 
 /**
@@ -6175,7 +6317,7 @@ function wp_is_uuid( $uuid, $version = null ) {
  * with the optional prefix. As such the returned value is not universally unique,
  * but it is unique across the life of the PHP process.
  *
- * @since 4.9.9
+ * @since 5.0.3
  *
  * @staticvar int $id_counter
  *
@@ -6518,4 +6660,84 @@ function wp_privacy_delete_old_export_files() {
 			unlink( $export_file );
 		}
 	}
+}
+
+/**
+ * Gets the URL to learn more about updating the PHP version the site is running on.
+ *
+ * This URL can be overridden by specifying an environment variable `WP_UPDATE_PHP_URL` or by using the
+ * {@see 'wp_update_php_url'} filter. Providing an empty string is not allowed and will result in the
+ * default URL being used. Furthermore the page the URL links to should preferably be localized in the
+ * site language.
+ *
+ * @since 5.1.0
+ *
+ * @return string URL to learn more about updating PHP.
+ */
+function wp_get_update_php_url() {
+	$default_url = wp_get_default_update_php_url();
+
+	$update_url = $default_url;
+	if ( false !== getenv( 'WP_UPDATE_PHP_URL' ) ) {
+		$update_url = getenv( 'WP_UPDATE_PHP_URL' );
+	}
+
+	/**
+	 * Filters the URL to learn more about updating the PHP version the site is running on.
+	 *
+	 * Providing an empty string is not allowed and will result in the default URL being used. Furthermore
+	 * the page the URL links to should preferably be localized in the site language.
+	 *
+	 * @since 5.1.0
+	 *
+	 * @param string $update_url URL to learn more about updating PHP.
+	 */
+	$update_url = apply_filters( 'wp_update_php_url', $update_url );
+
+	if ( empty( $update_url ) ) {
+		$update_url = $default_url;
+	}
+
+	return $update_url;
+}
+
+/**
+ * Gets the default URL to learn more about updating the PHP version the site is running on.
+ *
+ * Do not use this function to retrieve this URL. Instead, use {@see wp_get_update_php_url()} when relying on the URL.
+ * This function does not allow modifying the returned URL, and is only used to compare the actually used URL with the
+ * default one.
+ *
+ * @since 5.1.0
+ * @access private
+ *
+ * @return string Default URL to learn more about updating PHP.
+ */
+function wp_get_default_update_php_url() {
+	return _x( 'https://wordpress.org/support/update-php/', 'localized PHP upgrade information page' );
+}
+
+/**
+ * Prints the default annotation for the web host altering the "Update PHP" page URL.
+ *
+ * This function is to be used after {@see wp_get_update_php_url()} to display a consistent
+ * annotation if the web host has altered the default "Update PHP" page URL.
+ *
+ * @since 5.1.0
+ */
+function wp_update_php_annotation() {
+	$update_url  = wp_get_update_php_url();
+	$default_url = wp_get_default_update_php_url();
+
+	if ( $update_url === $default_url ) {
+		return;
+	}
+
+	echo '<p class="description">';
+	printf(
+		/* translators: %s: default Update PHP page URL */
+		__( 'This resource is provided by your web host, and is specific to your site. For more information, <a href="%s" target="_blank">see the official WordPress documentation</a>.' ),
+		esc_url( $default_url )
+	);
+	echo'</p>';
 }
