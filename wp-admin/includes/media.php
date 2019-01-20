@@ -221,7 +221,7 @@ function media_handle_upload($file_id, $post_id, $post_data = array(), $override
 	$url = $file['url'];
 	$type = $file['type'];
 	$file = $file['file'];
-	$title = $name;
+	$title = sanitize_text_field( $name );
 	$content = '';
 
 	if ( preg_match( '#^audio#', $type ) ) {
@@ -1558,7 +1558,7 @@ $post_params = array(
 $post_params = apply_filters( 'upload_post_params', $post_params ); // hook change! old name: 'swfupload_post_params'
 
 $plupload_init = array(
-	'runtimes' => 'html5,silverlight,flash,html4',
+	'runtimes' => 'html5,silverlight,html4',
 	'browse_button' => 'plupload-browse-button',
 	'container' => 'plupload-upload-ui',
 	'drop_element' => 'drag-drop-area',
@@ -2581,7 +2581,7 @@ function wp_add_id3_tag_data( &$metadata, $data ) {
 		if ( ! empty( $data[$version]['comments'] ) ) {
 			foreach ( $data[$version]['comments'] as $key => $list ) {
 				if ( ! empty( $list ) ) {
-					$metadata[$key] = reset( $list );
+					$metadata[$key] = wp_kses_post( reset( $list ) );
 					// fix bug in byte stream analysis
 					if ( 'terms_of_use' === $key && 0 === strpos( $metadata[$key], 'yright notice.' ) )
 						$metadata[$key] = 'Cop' . $metadata[$key];
